@@ -45,29 +45,9 @@ if [ -f ${BUILD_DIR}/dotnet-tools.json ] || [ -f ${BUILD_DIR}/.config/dotnet-too
 	dotnet tool restore
 fi
 
-topic "Search projects"
+topic "Build solution"
 
-#if [ -z ${PROJECT_FILE:-} ]; then
-#	PROJECT_FILE=$(x=$(dirname $(find ${BUILD_DIR} -maxdepth 5 -iname Startup.cs -o -iname Program.cs -o -iname Program.fs | head -1)); while [[ "$x" =~ $BUILD_DIR ]] ; do find "$x" -maxdepth 1 -name *.fsproj -o -name *.csproj; x=`dirname "$x"`; done)
-#fi
+export NUGET_PACKAGES="${CACHE_DIR}/nuget/cache"
 
-for PROJECT_FILE in $(find ${BUILD_DIR} -maxdepth 2 -iname Startup.cs -o -iname Program.cs -o -iname Program.fs); do
-    topic "Project File: $(PROJECT_FILE)"
-		info $PROJECT_FILE
-
-		PROJECT_NAME=$(basename ${PROJECT_FILE%.*})
-		topic "Project Name"
-		info $PROJECT_NAME
-
-		if [ -n "$(cat $PROJECT_FILE | grep 'netcoreapp2.0')" ]; then
-			topic "WARNING"
-			info "For netcoreapp2.0 use https://github.com/jincod/dotnetcore-buildpack#v2.1.200" | indent
-			info "More info https://github.com/jincod/dotnetcore-buildpack/issues/44" | indent
-		fi
-		export NUGET_PACKAGES="${CACHE_DIR}/nuget/cache"
-
-		OUTPUT_PROJECT_DIR="${OUTPUT_DIR}/$(basename $(dirname $PROJECT_FILE))"
-
-		info "publish ${PROJECT_FILE} for ${BUILD_CONFIGURATION} on ${OUTPUT_PROJECT_DIR}"
-		dotnet publish $PROJECT_FILE --output ${BUILD_DIR}/${OUTPUT_PROJECT_DIR} --configuration ${BUILD_CONFIGURATION} --runtime linux-x64  --self-contained
-done
+info "publish ${PROJECT_FILE} for ${BUILD_CONFIGURATION} on ${OUTPUT_DIR}"
+dotnet publish --output ${OUTPUT_DIR} --configuration ${BUILD_CONFIGURATION} --runtime linux-x64  --self-contained
